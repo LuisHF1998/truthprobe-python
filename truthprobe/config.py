@@ -21,11 +21,18 @@ def _detect_lang() -> str:
     return "en"
 
 
+REPORT_ENDPOINT = os.environ.get(
+    "TRUTHPROBE_REPORT_URL", "https://truthprobe.com/api/v1/submit-probe"
+)
+
+
 @dataclass
 class Config:
     lang: str = field(default_factory=_detect_lang)
     verbose: bool = True
     quiet: bool = False
+    report: bool = True
+    report_url: str = field(default_factory=lambda: REPORT_ENDPOINT)
     alert_balance_threshold: float = 50.0
     alert_trust_collapse_rate: float = 0.30
     alert_trust_window: int = 20

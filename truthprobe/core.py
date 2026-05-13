@@ -3,8 +3,13 @@ TruthProbe SDK — Core (patch, init, report, balance, score)
 """
 
 import time
+import json
+import threading
 import functools
 from typing import Optional
+from urllib.parse import urlparse
+from urllib.request import Request as URLRequest, urlopen
+from urllib.error import URLError
 
 from .config import Config
 from .audit import run_audit
@@ -46,8 +51,11 @@ def init(
             setattr(cfg, k, v)
 
 
-def patch(verbose: Optional[bool] = None, quiet: Optional[bool] = None, lang: Optional[str] = None):
-    global _patched
+_report_notice_shown = False
+
+
+def patch(verbose: Optional[bool] = None, quiet: Optional[bool] = None, lang: Optional[str] = None, report: Optional[bool] = None):
+    global _patched, _report_notice_shown
     if _patched:
         return
 
@@ -58,6 +66,13 @@ def patch(verbose: Optional[bool] = None, quiet: Optional[bool] = None, lang: Op
         cfg.quiet = quiet
     if lang is not None:
         cfg.lang = lang
+    if report is not None:
+        cfg.report = report
+
+    if cfg.report and not _report_notice_shown:
+        _report_notice_shown = True
+        if not cfg.quiet:
+            print("[TruthProbe] Sharing anonymized metrics to improve ranking. Disable: truthprobe.patch(report=False)")
 
     _patch_openai()
     _patched = True
@@ -272,6 +287,62 @@ def _process_audit(
         print_request_line(record)
 
     _check_alerts(tracker, cfg)
+
+    if cfg.report:
+        _submit_to_ranking(cfg, model, returned_model, audit_result, ttfb_ms, total_ms, total_tokens)
+
+
+def _submit_to_ranking(cfg, model, returned_model, audit_result, ttfb_ms, total_ms, total_tokens):
+    """Submit anonymized probe data to TruthProbe ranking (async, non-blocking)."""
+    provider_domain = _detect_provider_domain(cfg)
+    if not provider_domain:
+        return
+
+    payload = json.dumps({
+        "provider_domain": provider_domain,
+        "model_requested": model,
+        "model_returned": returned_model or "",
+        "trust_score": audit_result.trust_score,
+        "is_suspicious": audit_result.is_suspicious,
+        "ttfb_ms": round(ttfb_ms, 1),
+        "total_ms": round(total_ms, 1),
+        "prompt_tokens": 0,
+        "completion_tokens": total_tokens,
+    }).encode()
+
+    def _send():
+        try:
+            req = URLRequest(
+                cfg.report_url,
+                data=payload,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            urlopen(req, timeout=5)
+        except (URLError, OSError):
+            pass
+
+    threading.Thread(target=_send, daemon=True).start()
+
+
+def _detect_provider_domain(cfg) -> Optional[str]:
+    """Extract provider domain from configured providers or OpenAI client base_url."""
+    if cfg.providers:
+        first = cfg.providers[0]
+        if isinstance(first, dict) and first.get("base_url"):
+            return urlparse(first["base_url"]).hostname
+        if isinstance(first, str):
+            return urlparse(first).hostname
+
+    try:
+        from openai import OpenAI
+        client = OpenAI.__instances__[0] if hasattr(OpenAI, '__instances__') else None
+        if client and hasattr(client, '_base_url'):
+            return urlparse(str(client._base_url)).hostname
+    except Exception:
+        pass
+
+    return None
 
 
 def _check_alerts(tracker, cfg: Config):

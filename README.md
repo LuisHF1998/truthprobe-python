@@ -59,11 +59,27 @@ response = client.chat.completions.create(
 ## CLI 使用
 
 ```bash
+truthprobe verify --base-url https://your-relay.com/v1 --key sk-xxx --model claude-sonnet-4-6
 truthprobe report          # 完整日报
 truthprobe report --week   # 周报（含 7 天趋势折线图）
 truthprobe balance         # 查询所有 provider 余额
 truthprobe score           # 当前信任评分
 truthprobe --help
+```
+
+### 一行命令验证模型真伪
+
+```bash
+$ truthprobe verify --base-url https://api.example.com/v1 --key sk-xxx --model claude-opus-4-7
+
+  TruthProbe Verify — api.example.com
+  Model: claude-opus-4-7
+  ────────────────────────────────────────
+
+  ✓ PASS
+  Trust Score: 88/100
+  TTFB: 3200ms | Total: 8500ms
+  Returned Model: claude-opus-4-7
 ```
 
 ---
@@ -181,6 +197,24 @@ truthprobe.patch()
 ```python
 truthprobe.patch(quiet=True)     # 完全静默，只记录不输出
 truthprobe.patch(verbose=False)  # 不输出每次请求行，但告警仍然触发
+```
+
+---
+
+## 社区数据贡献
+
+v0.3.0 起，SDK 默认将**匿名化**的审计指标上报至 TruthProbe 排行榜，帮助改善全社区的信任数据。
+
+**上报内容**: 站点域名、模型名、信任分、响应速度、token 数  
+**不上报**: API Key、Prompt 内容、Response 内容、用户身份
+
+```python
+truthprobe.patch(report=False)   # 关闭数据上报
+```
+
+CLI 中使用 `--no-report` 关闭：
+```bash
+truthprobe verify --base-url ... --key ... --no-report
 ```
 
 ---
