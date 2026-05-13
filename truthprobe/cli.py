@@ -2,9 +2,9 @@
 TruthProbe SDK — CLI Entry Point
 Usage:
     truthprobe report          Full audit report
+    truthprobe report --week   Weekly report with trends
     truthprobe balance         Check all provider balances
     truthprobe score           Current trust score
-    truthprobe report --week   Weekly report
 """
 
 import sys
@@ -21,7 +21,7 @@ def main():
 
 Commands:
     truthprobe report          Full audit report (today)
-    truthprobe report --week   Weekly report
+    truthprobe report --week   Weekly report with 7-day trends
     truthprobe balance         Check provider balances
     truthprobe score           Current trust score
 
@@ -45,7 +45,11 @@ Options:
     cmd = args[0] if args else "report"
 
     if cmd == "report":
-        report()
+        if "--week" in args or "-w" in args:
+            from .display import print_weekly_report
+            print_weekly_report()
+        else:
+            report()
     elif cmd == "balance":
         balance()
     elif cmd == "score":

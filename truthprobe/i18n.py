@@ -35,6 +35,10 @@ STRINGS = {
         "report_balance_title": "余额监控",
         "report_no_data": "数据不足，请至少完成 {min} 次请求后查看",
         "unsupported_provider": "暂不支持该中转站余额查询",
+        "weekly_title": "TruthProbe 周报",
+        "weekly_subtitle": "近 7 天趋势",
+        "signal_breakdown": "信号分解",
+        "recommendations": "供应商建议",
     },
     "en": {
         "trusted": "trusted",
@@ -68,6 +72,10 @@ STRINGS = {
         "report_balance_title": "Balance Monitor",
         "report_no_data": "Insufficient data, complete at least {min} requests first",
         "unsupported_provider": "Balance query not supported for this provider",
+        "weekly_title": "TruthProbe Weekly Report",
+        "weekly_subtitle": "7-Day Trends",
+        "signal_breakdown": "Signal Breakdown",
+        "recommendations": "Provider Recommendations",
     },
 }
 
