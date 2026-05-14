@@ -1,3 +1,19 @@
+> # ⚠️ This project has moved to MCP
+>
+> **TruthProbe Python SDK is no longer maintained.**
+>
+> We've rebuilt TruthProbe as an MCP Server that works natively with Claude Code, Cursor, Windsurf, and all MCP-compatible AI tools. No code changes needed.
+>
+> ## 👉 **[truthprobe-mcp](https://github.com/LuisHF1998/truthprobe-mcp)** (new repo)
+>
+> ```bash
+> npm install -g truthprobe-mcp
+> ```
+>
+> See the [new repo](https://github.com/LuisHF1998/truthprobe-mcp) for setup instructions.
+
+---
+
 <p align="center">
   <strong>TruthProbe</strong> — AI API 信任审计 SDK
 </p>
